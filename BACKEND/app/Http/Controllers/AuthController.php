@@ -49,6 +49,23 @@ class AuthController extends Controller
                 'message' => $validate->errors(),
             ]);
         }
+
+        $user = User::where('username', $request->username)->first();
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid credentials',
+            ]);
+        }
+        $user->last_login_at = now();
+        $user->save();
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        return response()->json([
+            'status' => true,
+            'user' => $user,
+            'token' => $token,
+        ]);
     }
 
     public function signout(Request $request)

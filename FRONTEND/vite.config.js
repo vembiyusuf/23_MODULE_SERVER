@@ -6,6 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/23_MODULE_SERVER/FRONTEND/',
   plugins: [
     vue(),
     vueDevTools(),

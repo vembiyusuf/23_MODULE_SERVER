@@ -32,24 +32,14 @@ const router = createRouter({
       path: '/admins',
       name: 'admins',
       component: () => import('@/views/admins/ListAdmin.vue'),
-      meta: { requiresAuth: true },
     },
     {
       path: '/admins/listusers',
       name: 'listusers',
       component: () => import('@/views/admins/ListUser.vue'),
-      meta: { requiresAuth: true },
     },
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  if (to.matched.some(record => record.meta.requiresAuth) && !token) {
-    next('/')  
-  } else {
-    next();
-  }
-});
 
 export default router;

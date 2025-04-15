@@ -18,7 +18,6 @@ const signin = async() => {
     localStorage.setItem('token', response.data.token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     console.log(response.data.token)
-    console.log('response', response.data)
     route.push('/admins/listusers')
   } catch (e) {
     error.value = e.response.data.message;
@@ -34,6 +33,7 @@ const signin = async() => {
       <div class="form-input">
         <input type="text" placeholder="Username" v-model="username">
         <input type="text" placeholder="Password" v-model="password">
+        
         <div class="option">  
           <p>Belum punya akun</p> <RouterLink to="/signup">Signup</RouterLink>
         </div>

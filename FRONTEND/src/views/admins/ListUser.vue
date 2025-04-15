@@ -1,62 +1,113 @@
-<template>
-  <div>
-    <h2 class="text-xl font-bold mb-4">Daftar Pengguna</h2>
-    <ul v-if="users.length">
-      <li v-for="user in users" :key="user.id">
-        <template >
-          <strong>{{ user.username }}</strong><br />
-          <small>Dibuat pada: {{ formatDate(user.created_at) }}</small><br />
-          <button @click="editUser(user.id)" >
-            Edit
-          </button>
-          <button @click="deleteUser(user.id)">
-            Delete
-          </button>
-        </template>
-      </li>
-    </ul>
-    <p v-else>Loading data pengguna...</p>
-  </div>
-</template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from 'axios';
+import { onMounted, ref } from 'vue';
 
-const users = ref([])
-const userYangDiedit = ref(null)
-const formEdit = ref({
-  username: ''
-})
+const username = ref('');
+const password = ref('');
+const successMessage = ref('');
+const errorMessage = ref('');
+const users = ref([]);
+const error = ref('');
 
-const fetchUsers = async () => {
+const addUser = async () => {
   try {
-    const token = localStorage.getItem('token') // ambil token
-    const response = await axios.get('/users', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    users.value = response.data.content
-  } catch (error) {
-    console.error('Gagal fetch data pengguna:', error)
+    const response = await axios.post('/users', {
+      username: username.value,
+      password: password.value,
+    });
+    console.log("Berhasil menambahkan user")
+    console.log(response.data);
+
+    successMessage.value = 'User berhasil ditambahkan!';
+    errorMessage.value = '';
+    username.value = '';
+    password.value = '';
+
+    await fetchUser();
+
+    console.log(response.data);
+  } catch (err) {
+    successMessage.value = '';
+    errorMessage.value = 'Gagal menambahkan user.';
+    console.error(err);
   }
-}
+};
 
-
-const deleteUser = async (userId) => {
+const fetchUser = async () => {
   try {
-    await axios.delete(`/users/${userId}`)
-    users.value = users.value.filter(user => user.id !== userId)
-  } catch (error) {
-    console.error('Gagal menghapus pengguna:', error)
+    const response = await axios.get('/users');
+    users.value = response.data.users;
+    errorMessage.value = '';
+    console.log('Menampilkan user',response.data.users);
+    console.log(users.value);
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || 'Gagal mengambil data users.';
   }
-}
+};
 
-const formatDate = (tanggal) => {
-  return new Date(tanggal).toLocaleString('id-ID')
-}
+const deleteUser = async (id) => {
+  if (!confirm('Yakin ingin menghapus user ini?')) return;
+  try {
+    await axios.delete(`/users/${id}`);
+    successMessage.value = 'User berhasil dihapus!';
+    errorMessage.value = '';
 
-onMounted(fetchUsers)
+    await fetchUser();
+  } catch (err) {
+    errorMessage.value = 'Gagal menghapus user.';
+    console.error(err);
+  }
+};
+
+onMounted(fetchUser);
 </script>
 
+<template>
+  <div class="container">
+    <div class="navbar">
+      <h1>Admin</h1>
+      <div class="navbar-links">
+        <router-link to="/admins/listusers">List Users</router-link>
+        <router-link to="/admins/">List Admins</router-link>
+        <router-link to="/">Logout</router-link>
+      </div>
+    </div>
+    <div class="form-container">
+      <h1>Manage User</h1>
+      <p style="color: red;">{{ errorMessage }}</p>
+      <p style="color: green;">{{ successMessage }}</p>
+
+      <div class="form-input">
+        <input type="text" v-model="username" placeholder="Username" />
+        <input type="text" v-model="password" placeholder="Password" />
+        <button @click="addUser">Add User</button>
+      </div>
+    </div>
+
+    <div class="game-list">
+      <h2>Daftar User</h2>
+      <table border="1" cellpadding="10">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Last Login</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in users" :key="user.id">
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.created_at }}</td>
+            <td>
+              <button @click="editUser(user.id)">Edit</button>
+              <button @click="deleteUser(user.id)">Hapus</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="errors" style="color: red;">{{ error }}</p>
+    </div>
+  </div>
+</template>
