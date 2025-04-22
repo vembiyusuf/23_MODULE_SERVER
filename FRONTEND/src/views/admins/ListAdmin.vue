@@ -1,6 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import navbarAdmin from '@/components/navbarAdmin.vue';
 
 const username = ref('');
 const password = ref('');
@@ -63,11 +64,7 @@ onMounted(fetchAdmin);
   <div class="container">
     <div class="navbar">
       <h1>Admin</h1>
-      <div class="navbar-links">
-        <router-link to="/admins/listusers">List Users</router-link>
-        <router-link to="/admins">List Admins</router-link>
-        <router-link to="/">Logout</router-link>
-      </div>
+      <navbarAdmin></navbarAdmin>
     </div>
     <div class="form-container">
       <h1>Manage Admin</h1>

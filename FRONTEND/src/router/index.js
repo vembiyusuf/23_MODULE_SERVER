@@ -14,17 +14,17 @@ const router = createRouter({
       component: () => import('@/views/auth/Signup.vue'),
     },
     {
-      path: '/users',
+      path: '/user-profiles',
       name: 'users',
       component: () => import('@/views/users/UserProfile.vue'),
     },
     {
-      path: '/discovergames',
+      path: '/discover-games',
       name: 'discover-games',
-      component: () => import('@/views/users/DiscoverGame.vue'),
+      component: () => import('@/views/users/DiscoverGames.vue'),
     },
     {
-      path: '/managegames',
+      path: '/manage-games',
       name: 'manage-games',
       component: () => import('@/views/users/ManageGame.vue'),
     },

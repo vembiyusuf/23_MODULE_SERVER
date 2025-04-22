@@ -1,6 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import navbarAdmin from '@/components/navbarAdmin.vue';
 
 const username = ref('');
 const password = ref('');
@@ -8,41 +9,60 @@ const successMessage = ref('');
 const errorMessage = ref('');
 const users = ref([]);
 const error = ref('');
-
-const addUser = async () => {
-  try {
-    const response = await axios.post('/users', {
-      username: username.value,
-      password: password.value,
-    });
-    console.log("Berhasil menambahkan user")
-    console.log(response.data);
-
-    successMessage.value = 'User berhasil ditambahkan!';
-    errorMessage.value = '';
-    username.value = '';
-    password.value = '';
-
-    await fetchUser();
-
-    console.log(response.data);
-  } catch (err) {
-    successMessage.value = '';
-    errorMessage.value = 'Gagal menambahkan user.';
-    console.error(err);
-  }
-};
+const editingUserId = ref(null);
 
 const fetchUser = async () => {
   try {
     const response = await axios.get('/users');
     users.value = response.data.users;
     errorMessage.value = '';
-    console.log('Menampilkan user',response.data.users);
-    console.log(users.value);
   } catch (err) {
     errorMessage.value = err.response?.data?.message || 'Gagal mengambil data users.';
   }
+};
+
+const saveUser = async () => {
+  try {
+    if (editingUserId.value) {
+      await axios.put(`/users/${editingUserId.value}`, {
+        username: username.value,
+        password: password.value || undefined,
+      });
+      successMessage.value = 'User berhasil diperbarui!';
+    } else {
+      await axios.post('/users', {
+        username: username.value,
+        password: password.value,
+      });
+      successMessage.value = 'User berhasil ditambahkan!';
+    }
+
+    errorMessage.value = '';
+    username.value = '';
+    password.value = '';
+    editingUserId.value = null;
+    await fetchUser();
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || 'Gagal menyimpan user.';
+    successMessage.value = '';
+  }
+};
+
+const editUser = (id) => {
+  const user = users.value.find(u => u.id === id);
+  if (user) {
+    username.value = user.username;
+    password.value = '';
+    editingUserId.value = user.id;
+  }
+};
+
+const cancelEdit = () => {
+  username.value = '';
+  password.value = '';
+  editingUserId.value = null;
+  successMessage.value = '';
+  errorMessage.value = '';
 };
 
 const deleteUser = async (id) => {
@@ -51,11 +71,9 @@ const deleteUser = async (id) => {
     await axios.delete(`/users/${id}`);
     successMessage.value = 'User berhasil dihapus!';
     errorMessage.value = '';
-
     await fetchUser();
   } catch (err) {
     errorMessage.value = 'Gagal menghapus user.';
-    console.error(err);
   }
 };
 
@@ -66,12 +84,9 @@ onMounted(fetchUser);
   <div class="container">
     <div class="navbar">
       <h1>Admin</h1>
-      <div class="navbar-links">
-        <router-link to="/admins/listusers">List Users</router-link>
-        <router-link to="/admins/">List Admins</router-link>
-        <router-link to="/">Logout</router-link>
-      </div>
+      <navbarAdmin></navbarAdmin>
     </div>
+
     <div class="form-container">
       <h1>Manage User</h1>
       <p style="color: red;">{{ errorMessage }}</p>
@@ -79,8 +94,9 @@ onMounted(fetchUser);
 
       <div class="form-input">
         <input type="text" v-model="username" placeholder="Username" />
-        <input type="text" v-model="password" placeholder="Password" />
-        <button @click="addUser">Add User</button>
+        <input type="text" v-model="password" placeholder="Password (kosongkan jika tidak diubah)" />
+        <button @click="saveUser">{{ editingUserId ? 'Update User' : 'Add User' }}</button>
+        <button v-if="editingUserId" @click="cancelEdit" style="margin-left: 10px;">Cancel</button>
       </div>
     </div>
 

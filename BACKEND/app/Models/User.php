@@ -55,4 +55,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Score::class);
     }
+
+    public function authoredGames()
+    {
+        return $this->hasMany(Game::class, 'created_by');
+    }
 }

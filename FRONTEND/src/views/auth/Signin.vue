@@ -5,20 +5,27 @@ import { useRouter } from 'vue-router';
 
 const username = ref('');
 const password = ref('');
+const role = ref('user'); // Menambahkan opsi role
 const error = ref('');
 const route = useRouter();
 
 const signin = async() => {
   try {
-    const response = await axios.post('auth/signin', {
+    let endpoint = role.value === 'admin' ? 'admin/signin' : 'auth/signin';
+
+    const response = await axios.post(endpoint, {
       username: username.value,
       password: password.value,
     });
 
     localStorage.setItem('token', response.data.token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-    console.log(response.data.token)
-    route.push('/admins/listusers')
+    
+    if (role.value === 'admin') {
+      route.push('/admins'); 
+    } else {
+      route.push('/manage-games'); 
+    }
   } catch (e) {
     error.value = e.response.data.message;
   }
@@ -32,7 +39,15 @@ const signin = async() => {
       <p class="errors">{{ error }}</p>
       <div class="form-input">
         <input type="text" placeholder="Username" v-model="username">
-        <input type="text" placeholder="Password" v-model="password">
+        <input type="password" placeholder="Password" v-model="password">
+
+        <div class="role-selector">
+          <label for="role">Role:</label>
+          <select v-model="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
         
         <div class="option">  
           <p>Belum punya akun</p> <RouterLink to="/signup">Signup</RouterLink>
@@ -53,7 +68,7 @@ const signin = async() => {
 
 .form-container {
   width: 400px;
-  height: 400px;
+  height: 450px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -93,5 +108,19 @@ const signin = async() => {
   justify-content: center;
   align-items: center;
   gap: 4px;
+}
+
+.role-selector {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.role-selector select {
+  width: 70%;
+  padding: 8px;
+  border: 1px solid black;
+  border-radius: 5px;
 }
 </style>
